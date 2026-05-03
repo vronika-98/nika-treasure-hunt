@@ -11,6 +11,9 @@ document.documentElement.style.setProperty('--right-strip-image', `url("${assetU
 const CORRECT_PASSPHRASE = import.meta.env.VITE_PASSPHRASE;
 const SECRET_MESSAGE = import.meta.env.VITE_SECRET_MESSAGE;
 
+console.debug('[debug] VITE_PASSPHRASE:', CORRECT_PASSPHRASE);
+console.debug('[debug] VITE_SECRET_MESSAGE:', SECRET_MESSAGE);
+
 const app = document.querySelector<HTMLDivElement>('#app')!;
 
 app.innerHTML = `
