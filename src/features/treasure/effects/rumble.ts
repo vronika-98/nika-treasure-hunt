@@ -10,4 +10,8 @@ export class RumbleEffect {
     void this.interactionZone.offsetWidth;
     this.interactionZone.classList.add('rumble');
   }
+
+  dispose(): void {
+    this.interactionZone.classList.remove('rumble');
+  }
 }

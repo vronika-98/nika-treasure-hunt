@@ -1,8 +1,8 @@
 import './style.css'
-import { assetUrl, CORRECT_PASSPHRASE, SECRET_MESSAGE } from './config/env';
-import { TreasureGame } from './game/logic/treasureGame';
-import { renderApp } from './ui/dom';
-import { applyThemeImages } from './ui/theme';
+import { assetUrl, CORRECT_PASSPHRASE, SECRET_MESSAGE } from './features/treasure/config/env';
+import { TreasureGame } from './features/treasure/logic/treasureGame';
+import { renderApp } from './features/treasure/ui/dom';
+import { applyThemeImages } from './features/treasure/ui/theme';
 
 applyThemeImages(assetUrl);
 

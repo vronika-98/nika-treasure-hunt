@@ -18,4 +18,8 @@ export class RainbowDisplayEffect {
       this.rainbowDisplay.appendChild(span);
     }
   }
+
+  dispose(): void {
+    this.rainbowDisplay.textContent = '';
+  }
 }

@@ -20,9 +20,11 @@ const MAX_DT = 0.033;
 export class StarBurstEffect {
   private readonly starLayer: HTMLDivElement;
   private readonly stars: StarParticle[] = [];
+  private readonly emissionTimeoutIds: number[] = [];
   private animationFrameId: number | null = null;
   private previousFrameTime = 0;
   private readonly chestImg: HTMLImageElement;
+  private isDisposed = false;
 
   constructor(chestImg: HTMLImageElement) {
     this.chestImg = chestImg;
@@ -32,9 +34,39 @@ export class StarBurstEffect {
   }
 
   trigger(): void {
+    if (this.isDisposed) {
+      return;
+    }
+
     this.emitStarsFromChest(36);
-    window.setTimeout(() => this.emitStarsFromChest(24), 120);
-    window.setTimeout(() => this.emitStarsFromChest(18), 260);
+    this.emissionTimeoutIds.push(window.setTimeout(() => this.emitStarsFromChest(24), 120));
+    this.emissionTimeoutIds.push(window.setTimeout(() => this.emitStarsFromChest(18), 260));
+  }
+
+  dispose(): void {
+    this.isDisposed = true;
+
+    for (const timeoutId of this.emissionTimeoutIds) {
+      window.clearTimeout(timeoutId);
+    }
+
+    this.emissionTimeoutIds.length = 0;
+
+    if (this.animationFrameId !== null) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
+
+    this.previousFrameTime = 0;
+
+    while (this.stars.length > 0) {
+      const star = this.stars.pop();
+      if (star) {
+        star.element.remove();
+      }
+    }
+
+    this.starLayer.remove();
   }
 
   private syncStarVisuals(now: number): void {
@@ -153,6 +185,10 @@ export class StarBurstEffect {
   }
 
   private emitStarsFromChest(count: number): void {
+    if (this.isDisposed) {
+      return;
+    }
+
     const chestRect = this.chestImg.getBoundingClientRect();
     const centerX = chestRect.left + chestRect.width / 2;
     const centerY = chestRect.top + chestRect.height / 2;

@@ -1,4 +1,4 @@
-import { PassphrasePolicy } from '../game/logic/passphrase';
+import { PassphrasePolicy } from '../logic/passphrase';
 
 function getRequiredEnv(name: 'VITE_PASSPHRASE' | 'VITE_SECRET_MESSAGE'): string {
   const value = import.meta.env[name];

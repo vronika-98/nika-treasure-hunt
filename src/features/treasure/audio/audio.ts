@@ -19,6 +19,13 @@ export class GameAudioController {
     this.play(this.failAudio);
   }
 
+  dispose(): void {
+    this.wowAudio.pause();
+    this.failAudio.pause();
+    this.wowAudio.currentTime = 0;
+    this.failAudio.currentTime = 0;
+  }
+
   private play(audio: HTMLAudioElement): void {
     audio.currentTime = 0;
     audio.play().catch(() => {
