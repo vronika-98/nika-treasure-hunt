@@ -1,3 +1,5 @@
+import { PASSPHRASE_MAX_LENGTH } from '../game/logic/passphrase';
+
 type AssetUrlResolver = (fileName: string) => string;
 
 export type AppElements = {
@@ -36,7 +38,7 @@ export function renderApp(assetUrl: AssetUrlResolver, secretMessage: string): Ap
         <label id="passphrase-label" for="passphrase-input">GEHEIMCODE EINGEBEN</label>
         <div id="passphrase-input-wrap">
           <div id="passphrase-rainbow" aria-hidden="true"></div>
-          <input type="text" id="passphrase-input" autocomplete="off" spellcheck="false" maxlength="13">
+          <input type="text" id="passphrase-input" autocomplete="off" spellcheck="false" maxlength="${PASSPHRASE_MAX_LENGTH}">
         </div>
         <button id="passphrase-submit" type="button">PRÜFEN</button>
         <p id="secret-display" class="hidden">${secretMessage}</p>

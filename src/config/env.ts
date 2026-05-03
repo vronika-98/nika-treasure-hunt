@@ -1,4 +1,4 @@
-import { PASSPHRASE_MAX_LENGTH } from './passphrase';
+import { PASSPHRASE_MAX_LENGTH } from '../game/logic/passphrase';
 
 function getRequiredEnv(name: 'VITE_PASSPHRASE' | 'VITE_SECRET_MESSAGE'): string {
   const value = import.meta.env[name];

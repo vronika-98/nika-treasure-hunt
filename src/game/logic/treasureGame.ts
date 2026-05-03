@@ -1,5 +1,9 @@
-import type { AppElements } from './dom';
-import { createChestStarBurst } from './particles/starBurst';
+import { createGameAudio, playAudio } from '../audio/audio';
+import { transitionChestToWhite } from '../effects/chestTransition';
+import { triggerRumble } from '../effects/rumble';
+import { updateRainbowDisplay } from '../effects/rainbowDisplay';
+import { createChestStarBurst } from '../effects/starBurst';
+import type { AppElements } from '../../ui/dom';
 import { clampPassphraseInput, isPassphraseMatch, PASSPHRASE_MAX_LENGTH } from './passphrase';
 
 type AssetUrlResolver = (fileName: string) => string;
@@ -9,60 +13,6 @@ type SetupTreasureGameOptions = {
   assetUrl: AssetUrlResolver;
   correctPassphrase: string;
 };
-
-const RAINBOW_COLORS = ['#ff2a2a', '#ff8c1a', '#ffd400', '#2ecc40', '#2a7fff', '#8f2aff'];
-
-function updateRainbowDisplay(rainbowDisplay: HTMLDivElement, value: string): void {
-  const normalized = value.toUpperCase();
-  rainbowDisplay.textContent = '';
-
-  for (let index = 0; index < normalized.length; index += 1) {
-    const span = document.createElement('span');
-    span.textContent = normalized[index];
-    span.style.color = RAINBOW_COLORS[index % RAINBOW_COLORS.length];
-    rainbowDisplay.appendChild(span);
-  }
-}
-
-function triggerRumble(interactionZone: HTMLDivElement): void {
-  interactionZone.classList.remove('rumble');
-  void interactionZone.offsetWidth;
-  interactionZone.classList.add('rumble');
-}
-
-function transitionChestToWhite(chestImg: HTMLImageElement): Promise<void> {
-  return new Promise((resolve) => {
-    let settled = false;
-
-    const finish = (): void => {
-      if (settled) {
-        return;
-      }
-
-      settled = true;
-      chestImg.removeEventListener('transitionend', onTransitionEnd);
-      resolve();
-    };
-
-    const onTransitionEnd = (event: TransitionEvent): void => {
-      if (event.propertyName === 'filter') {
-        finish();
-      }
-    };
-
-    chestImg.classList.add('chest-white');
-    chestImg.addEventListener('transitionend', onTransitionEnd);
-
-    window.setTimeout(finish, 320);
-  });
-}
-
-function playAudio(audio: HTMLAudioElement): void {
-  audio.currentTime = 0;
-  audio.play().catch(() => {
-    // Ignore autoplay policy rejections if the browser blocks sound.
-  });
-}
 
 export function setupTreasureGame({
   elements,
@@ -81,10 +31,7 @@ export function setupTreasureGame({
   } = elements;
 
   const triggerChestStarBurst = createChestStarBurst(chestImg);
-  const wowAudio = new Audio(assetUrl('wow.mp3'));
-  const failAudio = new Audio(assetUrl('fail.mp3'));
-  wowAudio.preload = 'auto';
-  failAudio.preload = 'auto';
+  const { wowAudio, failAudio } = createGameAudio(assetUrl);
 
   let isUnlocked = false;
 
