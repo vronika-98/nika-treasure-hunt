@@ -1,22 +1,28 @@
 type AssetUrlResolver = (fileName: string) => string;
 
-export type GameAudio = {
-  wowAudio: HTMLAudioElement;
-  failAudio: HTMLAudioElement;
-};
+export class GameAudioController {
+  private readonly wowAudio: HTMLAudioElement;
+  private readonly failAudio: HTMLAudioElement;
 
-export function createGameAudio(assetUrl: AssetUrlResolver): GameAudio {
-  const wowAudio = new Audio(assetUrl('wow.mp3'));
-  const failAudio = new Audio(assetUrl('fail.mp3'));
-  wowAudio.preload = 'auto';
-  failAudio.preload = 'auto';
+  constructor(assetUrl: AssetUrlResolver) {
+    this.wowAudio = new Audio(assetUrl('wow.mp3'));
+    this.failAudio = new Audio(assetUrl('fail.mp3'));
+    this.wowAudio.preload = 'auto';
+    this.failAudio.preload = 'auto';
+  }
 
-  return { wowAudio, failAudio };
-}
+  playSuccess(): void {
+    this.play(this.wowAudio);
+  }
 
-export function playAudio(audio: HTMLAudioElement): void {
-  audio.currentTime = 0;
-  audio.play().catch(() => {
-    // Ignore autoplay policy rejections if the browser blocks sound.
-  });
+  playFailure(): void {
+    this.play(this.failAudio);
+  }
+
+  private play(audio: HTMLAudioElement): void {
+    audio.currentTime = 0;
+    audio.play().catch(() => {
+      // Ignore autoplay policy rejections if the browser blocks sound.
+    });
+  }
 }

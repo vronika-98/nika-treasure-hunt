@@ -1,5 +1,13 @@
-export function triggerRumble(interactionZone: HTMLDivElement): void {
-  interactionZone.classList.remove('rumble');
-  void interactionZone.offsetWidth;
-  interactionZone.classList.add('rumble');
+export class RumbleEffect {
+  private readonly interactionZone: HTMLDivElement;
+
+  constructor(interactionZone: HTMLDivElement) {
+    this.interactionZone = interactionZone;
+  }
+
+  trigger(): void {
+    this.interactionZone.classList.remove('rumble');
+    void this.interactionZone.offsetWidth;
+    this.interactionZone.classList.add('rumble');
+  }
 }

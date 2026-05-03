@@ -1,13 +1,29 @@
-export const PASSPHRASE_MAX_LENGTH = 13;
+export class PassphrasePolicy {
+  static readonly MAX_LENGTH = 13;
 
-export function clampPassphraseInput(value: string): string {
-  return value.slice(0, PASSPHRASE_MAX_LENGTH);
-}
+  private readonly expectedPassphrase: string;
 
-export function normalizePassphrase(value: string): string {
-  return value.trim().toUpperCase();
-}
+  constructor(expectedPassphrase: string) {
+    this.expectedPassphrase = expectedPassphrase;
+  }
 
-export function isPassphraseMatch(inputValue: string, expectedValue: string): boolean {
-  return normalizePassphrase(inputValue) === normalizePassphrase(expectedValue);
+  static clampInput(value: string): string {
+    return value.slice(0, PassphrasePolicy.MAX_LENGTH);
+  }
+
+  static normalize(value: string): string {
+    return value.trim().toUpperCase();
+  }
+
+  clampInput(value: string): string {
+    return PassphrasePolicy.clampInput(value);
+  }
+
+  normalize(value: string): string {
+    return PassphrasePolicy.normalize(value);
+  }
+
+  isMatch(inputValue: string): boolean {
+    return this.normalize(inputValue) === this.normalize(this.expectedPassphrase);
+  }
 }

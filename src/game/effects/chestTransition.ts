@@ -1,26 +1,34 @@
-export function transitionChestToWhite(chestImg: HTMLImageElement): Promise<void> {
-  return new Promise((resolve) => {
-    let settled = false;
+export class ChestTransitionEffect {
+  private readonly chestImg: HTMLImageElement;
 
-    const finish = (): void => {
-      if (settled) {
-        return;
-      }
+  constructor(chestImg: HTMLImageElement) {
+    this.chestImg = chestImg;
+  }
 
-      settled = true;
-      chestImg.removeEventListener('transitionend', onTransitionEnd);
-      resolve();
-    };
+  toWhite(): Promise<void> {
+    return new Promise((resolve) => {
+      let settled = false;
 
-    const onTransitionEnd = (event: TransitionEvent): void => {
-      if (event.propertyName === 'filter') {
-        finish();
-      }
-    };
+      const finish = (): void => {
+        if (settled) {
+          return;
+        }
 
-    chestImg.classList.add('chest-white');
-    chestImg.addEventListener('transitionend', onTransitionEnd);
+        settled = true;
+        this.chestImg.removeEventListener('transitionend', onTransitionEnd);
+        resolve();
+      };
 
-    window.setTimeout(finish, 320);
-  });
+      const onTransitionEnd = (event: TransitionEvent): void => {
+        if (event.propertyName === 'filter') {
+          finish();
+        }
+      };
+
+      this.chestImg.classList.add('chest-white');
+      this.chestImg.addEventListener('transitionend', onTransitionEnd);
+
+      window.setTimeout(finish, 320);
+    });
+  }
 }

@@ -1,35 +1,32 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  clampPassphraseInput,
-  isPassphraseMatch,
-  normalizePassphrase,
-  PASSPHRASE_MAX_LENGTH,
-} from './passphrase';
+import { PassphrasePolicy } from './passphrase';
 
-describe('clampPassphraseInput', () => {
+const policy = new PassphrasePolicy('GOLD');
+
+describe('PassphrasePolicy.clampInput', () => {
   it('keeps values at or below max length', () => {
-    expect(clampPassphraseInput('ABCDEFGHIJKLM')).toBe('ABCDEFGHIJKLM');
+    expect(PassphrasePolicy.clampInput('ABCDEFGHIJKLM')).toBe('ABCDEFGHIJKLM');
   });
 
   it('truncates values above max length', () => {
-    expect(clampPassphraseInput('ABCDEFGHIJKLMN')).toHaveLength(PASSPHRASE_MAX_LENGTH);
-    expect(clampPassphraseInput('ABCDEFGHIJKLMN')).toBe('ABCDEFGHIJKLM');
+    expect(PassphrasePolicy.clampInput('ABCDEFGHIJKLMN')).toHaveLength(PassphrasePolicy.MAX_LENGTH);
+    expect(PassphrasePolicy.clampInput('ABCDEFGHIJKLMN')).toBe('ABCDEFGHIJKLM');
   });
 });
 
-describe('normalizePassphrase', () => {
+describe('PassphrasePolicy.normalize', () => {
   it('uppercases and trims passphrases', () => {
-    expect(normalizePassphrase('  hAllo  ')).toBe('HALLO');
+    expect(PassphrasePolicy.normalize('  hAllo  ')).toBe('HALLO');
   });
 });
 
-describe('isPassphraseMatch', () => {
+describe('PassphrasePolicy#isMatch', () => {
   it('returns true for case-insensitive matches', () => {
-    expect(isPassphraseMatch('gold', 'GOLD')).toBe(true);
+    expect(policy.isMatch('gold')).toBe(true);
   });
 
   it('returns false for non-matching values', () => {
-    expect(isPassphraseMatch('gold', 'SILVER')).toBe(false);
+    expect(policy.isMatch('SILVER')).toBe(false);
   });
 });

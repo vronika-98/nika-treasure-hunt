@@ -1,10 +1,10 @@
-import { createGameAudio, playAudio } from '../audio/audio';
-import { transitionChestToWhite } from '../effects/chestTransition';
-import { triggerRumble } from '../effects/rumble';
-import { updateRainbowDisplay } from '../effects/rainbowDisplay';
-import { createChestStarBurst } from '../effects/starBurst';
+import { GameAudioController } from '../audio/audio';
+import { ChestTransitionEffect } from '../effects/chestTransition';
+import { RainbowDisplayEffect } from '../effects/rainbowDisplay';
+import { RumbleEffect } from '../effects/rumble';
+import { StarBurstEffect } from '../effects/starBurst';
 import type { AppElements } from '../../ui/dom';
-import { clampPassphraseInput, isPassphraseMatch, PASSPHRASE_MAX_LENGTH } from './passphrase';
+import { PassphrasePolicy } from './passphrase';
 
 type AssetUrlResolver = (fileName: string) => string;
 
@@ -14,85 +14,99 @@ type SetupTreasureGameOptions = {
   correctPassphrase: string;
 };
 
-export function setupTreasureGame({
-  elements,
-  assetUrl,
-  correctPassphrase,
-}: SetupTreasureGameOptions): void {
-  const {
-    interactionZone,
-    passphraseLabel,
-    input,
-    inputWrap,
-    submitButton,
-    rainbowDisplay,
-    secretDisplay,
-    chestImg,
-  } = elements;
+export class TreasureGame {
+  private readonly elements: AppElements;
+  private readonly assetUrl: AssetUrlResolver;
+  private readonly passphrasePolicy: PassphrasePolicy;
+  private readonly rainbowEffect: RainbowDisplayEffect;
+  private readonly rumbleEffect: RumbleEffect;
+  private readonly chestTransitionEffect: ChestTransitionEffect;
+  private readonly starBurstEffect: StarBurstEffect;
+  private readonly audioController: GameAudioController;
+  private isUnlocked = false;
 
-  const triggerChestStarBurst = createChestStarBurst(chestImg);
-  const { wowAudio, failAudio } = createGameAudio(assetUrl);
-
-  let isUnlocked = false;
-
-  async function revealSecret(): Promise<void> {
-    if (isUnlocked) {
-      return;
-    }
-
-    isUnlocked = true;
-    passphraseLabel.hidden = true;
-    passphraseLabel.setAttribute('aria-hidden', 'true');
-    passphraseLabel.classList.add('hidden');
-    inputWrap.classList.add('hidden');
-    submitButton.classList.add('hidden');
-
-    await transitionChestToWhite(chestImg);
-
-    triggerChestStarBurst();
-    playAudio(wowAudio);
-
-    chestImg.src = assetUrl('treasure-chest-open.png');
-    requestAnimationFrame(() => {
-      chestImg.classList.remove('chest-white');
-    });
-
-    secretDisplay.classList.remove('hidden');
-    console.log('Treasure Unlocked!');
+  constructor({ elements, assetUrl, correctPassphrase }: SetupTreasureGameOptions) {
+    this.elements = elements;
+    this.assetUrl = assetUrl;
+    this.passphrasePolicy = new PassphrasePolicy(correctPassphrase);
+    this.rainbowEffect = new RainbowDisplayEffect(this.elements.rainbowDisplay);
+    this.rumbleEffect = new RumbleEffect(this.elements.interactionZone);
+    this.chestTransitionEffect = new ChestTransitionEffect(this.elements.chestImg);
+    this.starBurstEffect = new StarBurstEffect(this.elements.chestImg);
+    this.audioController = new GameAudioController(assetUrl);
   }
 
-  function checkPassphrase(): void {
-    if (isPassphraseMatch(input.value, correctPassphrase)) {
-      revealSecret();
-      return;
-    }
+  start(): void {
+    this.rainbowEffect.update(this.elements.input.value);
+    this.elements.input.maxLength = PassphrasePolicy.MAX_LENGTH;
 
-    passphraseLabel.textContent = 'DAS WAR LEIDER FALSCH!';
-    playAudio(failAudio);
-    triggerRumble(interactionZone);
+    this.elements.input.addEventListener('input', this.handleInput);
+    this.elements.input.addEventListener('keydown', this.handleKeyDown);
+    this.elements.submitButton.addEventListener('click', this.handleSubmitClick);
   }
 
-  updateRainbowDisplay(rainbowDisplay, input.value);
-  input.maxLength = PASSPHRASE_MAX_LENGTH;
-
-  input.addEventListener('input', (event) => {
+  private handleInput = (event: Event): void => {
     const target = event.target as HTMLInputElement;
-    const clampedValue = clampPassphraseInput(target.value);
+    const clampedValue = this.passphrasePolicy.clampInput(target.value);
     if (clampedValue !== target.value) {
       target.value = clampedValue;
     }
 
-    updateRainbowDisplay(rainbowDisplay, target.value);
-  });
+    this.rainbowEffect.update(target.value);
+  };
 
-  input.addEventListener('keydown', (event) => {
+  private handleKeyDown = (event: KeyboardEvent): void => {
     if (event.key === 'Enter') {
       event.preventDefault();
-      checkPassphrase();
+      this.checkPassphrase();
     }
-  });
+  };
 
-  submitButton.addEventListener('click', () => {
-    checkPassphrase();
-  });
+  private handleSubmitClick = (): void => {
+    this.checkPassphrase();
+  };
+
+  private async revealSecret(): Promise<void> {
+    if (this.isUnlocked) {
+      return;
+    }
+
+    this.isUnlocked = true;
+    this.elements.passphraseLabel.hidden = true;
+    this.elements.passphraseLabel.setAttribute('aria-hidden', 'true');
+    this.elements.passphraseLabel.classList.add('hidden');
+    this.elements.inputWrap.classList.add('hidden');
+    this.elements.submitButton.classList.add('hidden');
+
+    await this.chestTransitionEffect.toWhite();
+
+    this.starBurstEffect.trigger();
+    this.audioController.playSuccess();
+
+    this.elements.chestImg.src = this.assetUrl('treasure-chest-open.png');
+    requestAnimationFrame(() => {
+      this.elements.chestImg.classList.remove('chest-white');
+    });
+
+    this.elements.secretDisplay.classList.remove('hidden');
+    console.log('Treasure Unlocked!');
+  }
+
+  private checkPassphrase(): void {
+    if (this.passphrasePolicy.isMatch(this.elements.input.value)) {
+      void this.revealSecret();
+      return;
+    }
+
+    this.elements.passphraseLabel.textContent = 'DAS WAR LEIDER FALSCH!';
+    this.audioController.playFailure();
+    this.rumbleEffect.trigger();
+  }
+}
+
+export function setupTreasureGame(options: SetupTreasureGameOptions): TreasureGame {
+  const game = new TreasureGame(options);
+  game.start();
+
+  return game;
 }

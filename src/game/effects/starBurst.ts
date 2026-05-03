@@ -17,27 +17,37 @@ const WALL_BOUNCE = 0.76;
 const PARTICLE_BOUNCE = 0.72;
 const MAX_DT = 0.033;
 
-export function createChestStarBurst(chestImg: HTMLImageElement): () => void {
-  const starLayer = document.createElement('div');
-  starLayer.id = 'star-layer';
-  document.body.appendChild(starLayer);
+export class StarBurstEffect {
+  private readonly starLayer: HTMLDivElement;
+  private readonly stars: StarParticle[] = [];
+  private animationFrameId: number | null = null;
+  private previousFrameTime = 0;
+  private readonly chestImg: HTMLImageElement;
 
-  const stars: StarParticle[] = [];
+  constructor(chestImg: HTMLImageElement) {
+    this.chestImg = chestImg;
+    this.starLayer = document.createElement('div');
+    this.starLayer.id = 'star-layer';
+    document.body.appendChild(this.starLayer);
+  }
 
-  let animationFrameId: number | null = null;
-  let previousFrameTime = 0;
+  trigger(): void {
+    this.emitStarsFromChest(36);
+    window.setTimeout(() => this.emitStarsFromChest(24), 120);
+    window.setTimeout(() => this.emitStarsFromChest(18), 260);
+  }
 
-  function syncStarVisuals(now: number): void {
+  private syncStarVisuals(now: number): void {
     const viewportHeight = window.innerHeight;
 
-    for (let index = stars.length - 1; index >= 0; index -= 1) {
-      const star = stars[index];
+    for (let index = this.stars.length - 1; index >= 0; index -= 1) {
+      const star = this.stars[index];
       const age = now - star.bornAt;
       const fadeProgress = Math.min(age / star.ttl, 1);
 
       if (age >= star.ttl || star.y - star.radius > viewportHeight) {
         star.element.remove();
-        stars.splice(index, 1);
+        this.stars.splice(index, 1);
         continue;
       }
 
@@ -46,7 +56,7 @@ export function createChestStarBurst(chestImg: HTMLImageElement): () => void {
     }
   }
 
-  function resolveWallCollisions(star: StarParticle, width: number): void {
+  private resolveWallCollisions(star: StarParticle, width: number): void {
     if (star.x - star.radius < 0) {
       star.x = star.radius;
       star.vx = Math.abs(star.vx) * WALL_BOUNCE;
@@ -63,11 +73,11 @@ export function createChestStarBurst(chestImg: HTMLImageElement): () => void {
     }
   }
 
-  function resolveParticleCollisions(): void {
-    for (let i = 0; i < stars.length; i += 1) {
-      for (let j = i + 1; j < stars.length; j += 1) {
-        const a = stars[i];
-        const b = stars[j];
+  private resolveParticleCollisions(): void {
+    for (let i = 0; i < this.stars.length; i += 1) {
+      for (let j = i + 1; j < this.stars.length; j += 1) {
+        const a = this.stars[i];
+        const b = this.stars[j];
         const dx = b.x - a.x;
         const dy = b.y - a.y;
         const distance = Math.hypot(dx, dy);
@@ -100,50 +110,50 @@ export function createChestStarBurst(chestImg: HTMLImageElement): () => void {
     }
   }
 
-  function stepStarPhysics(deltaTime: number): void {
+  private stepStarPhysics(deltaTime: number): void {
     const width = window.innerWidth;
 
-    for (const star of stars) {
+    for (const star of this.stars) {
       star.vy += GRAVITY * deltaTime;
       star.x += star.vx * deltaTime;
       star.y += star.vy * deltaTime;
       star.rotation += star.spin * deltaTime;
-      resolveWallCollisions(star, width);
+      this.resolveWallCollisions(star, width);
     }
 
-    resolveParticleCollisions();
+    this.resolveParticleCollisions();
   }
 
-  function animateStars(timestamp: number): void {
-    if (previousFrameTime === 0) {
-      previousFrameTime = timestamp;
+  private animateStars = (timestamp: number): void => {
+    if (this.previousFrameTime === 0) {
+      this.previousFrameTime = timestamp;
     }
 
-    const deltaTime = Math.min((timestamp - previousFrameTime) / 1000, MAX_DT);
-    previousFrameTime = timestamp;
+    const deltaTime = Math.min((timestamp - this.previousFrameTime) / 1000, MAX_DT);
+    this.previousFrameTime = timestamp;
 
-    stepStarPhysics(deltaTime);
-    syncStarVisuals(performance.now());
+    this.stepStarPhysics(deltaTime);
+    this.syncStarVisuals(performance.now());
 
-    if (stars.length === 0) {
-      animationFrameId = null;
-      previousFrameTime = 0;
+    if (this.stars.length === 0) {
+      this.animationFrameId = null;
+      this.previousFrameTime = 0;
       return;
     }
 
-    animationFrameId = requestAnimationFrame(animateStars);
-  }
+    this.animationFrameId = requestAnimationFrame(this.animateStars);
+  };
 
-  function ensureStarAnimationLoop(): void {
-    if (animationFrameId !== null) {
+  private ensureStarAnimationLoop(): void {
+    if (this.animationFrameId !== null) {
       return;
     }
 
-    animationFrameId = requestAnimationFrame(animateStars);
+    this.animationFrameId = requestAnimationFrame(this.animateStars);
   }
 
-  function emitStarsFromChest(count: number): void {
-    const chestRect = chestImg.getBoundingClientRect();
+  private emitStarsFromChest(count: number): void {
+    const chestRect = this.chestImg.getBoundingClientRect();
     const centerX = chestRect.left + chestRect.width / 2;
     const centerY = chestRect.top + chestRect.height / 2;
     const now = performance.now();
@@ -159,9 +169,9 @@ export function createChestStarBurst(chestImg: HTMLImageElement): () => void {
       element.className = 'star-particle';
       element.textContent = symbol;
       element.style.fontSize = `${16 + Math.random() * 16}px`;
-      starLayer.appendChild(element);
+      this.starLayer.appendChild(element);
 
-      stars.push({
+      this.stars.push({
         element,
         x: centerX + (Math.random() - 0.5) * 18,
         y: centerY + (Math.random() - 0.5) * 10,
@@ -176,12 +186,6 @@ export function createChestStarBurst(chestImg: HTMLImageElement): () => void {
       });
     }
 
-    ensureStarAnimationLoop();
+    this.ensureStarAnimationLoop();
   }
-
-  return function triggerChestStarBurst(): void {
-    emitStarsFromChest(36);
-    window.setTimeout(() => emitStarsFromChest(24), 120);
-    window.setTimeout(() => emitStarsFromChest(18), 260);
-  };
 }
