@@ -1,0 +1,333 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&display=swap');
+
+@property --rumble-amp {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --rumble-dir {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+:root {
+  background-color: #060a0e;
+  background-image: url('/background.png');
+  background-repeat: repeat;
+  background-position: top left;
+  color: #c4cbb5;
+  font-family: 'Cinzel', Georgia, serif;
+  --side-border-width: clamp(24px, 5vw, 56px);
+  --focus-zone-top: 20vh;
+  --focus-zone-height: 60vh;
+  --chest-size: clamp(210px, 30vh, 380px);
+  --zone-gap: clamp(10px, 2vh, 24px);
+  --interaction-width: min(92vw, 440px);
+  --interaction-min-height: clamp(120px, 18vh, 220px);
+  --stone-light: #8a9386;
+  --stone-mid: #5f675d;
+  --stone-dark: #2f372f;
+  --stone-crack: #1b201b;
+  --moss-light: #6f8b4c;
+  --moss-dark: #394a2f;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  position: relative;
+}
+
+#app {
+  position: relative;
+  z-index: 10;
+}
+
+#star-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 30;
+}
+
+.star-particle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  line-height: 1;
+  transform-origin: center;
+  user-select: none;
+  filter: drop-shadow(0 0 4px rgba(255, 232, 150, 0.65));
+  will-change: transform, opacity;
+}
+
+/* Fixed side textures that tile vertically from top to bottom. */
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: var(--side-border-width);
+  background-repeat: repeat-y;
+  background-size: 150% auto;
+  background-position: top;
+  pointer-events: none;
+  z-index: 999;
+}
+
+body::before {
+  left: 0;
+  background-image: url('/vertical-strip-left.png');
+}
+
+body::after {
+  right: 0;
+  background-image: url('/vertical-strip-right.png');
+}
+
+.game-container {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: var(--focus-zone-top);
+  height: var(--focus-zone-height);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--zone-gap);
+  padding-inline: calc(var(--side-border-width) + 12px);
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.retro-title {
+  color: #cdd3c6;
+  text-shadow: 0 1px 0 #f1f5ea, 0 3px 0 #4d5649, 2px 5px 8px rgba(0, 0, 0, 0.65);
+  font-size: 3rem;
+  margin-bottom: 2rem;
+}
+
+#chest-wrapper {
+  width: var(--chest-size);
+  aspect-ratio: 1 / 1;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  z-index: 20;
+}
+
+#chest-img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  cursor: pointer;
+  filter: none;
+  transition: filter 228ms ease;
+}
+
+#chest-img.chest-white {
+  filter: brightness(0) invert(1);
+}
+
+#interaction-zone {
+  position: relative;
+  width: var(--interaction-width);
+  min-height: var(--interaction-min-height);
+  margin-top: 0;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 5px solid #3a3a3a;
+  border-radius: 0;
+  background: #8a8a8a;
+  box-shadow: inset 0 0 5mm rgba(0, 0, 0, 0.65), inset 0 0 1.5mm rgba(0, 0, 0, 0.8);
+  box-sizing: border-box;
+}
+
+#interaction-zone.rumble {
+  --intensity: 8px;
+  --frequency: 15;
+  --decay-time: 2s;
+  --decay-seconds: 8;
+  animation:
+    rumble-oscillate calc(1s / var(--frequency)) linear 0s calc(var(--frequency) * var(--decay-seconds)) both,
+    rumble-envelope var(--decay-time) linear 0s 1 forwards;
+  transform: translateX(calc(var(--intensity) * var(--rumble-amp) * var(--rumble-dir)));
+}
+
+@keyframes rumble-oscillate {
+  0% { --rumble-dir: -1; }
+  50% { --rumble-dir: 1; }
+  100% { --rumble-dir: -1; }
+}
+
+@keyframes rumble-envelope {
+  0% { --rumble-amp: 1; }
+  14% { --rumble-amp: 0.62; }
+  28% { --rumble-amp: 0.38; }
+  44% { --rumble-amp: 0.22; }
+  62% { --rumble-amp: 0.12; }
+  80% { --rumble-amp: 0.05; }
+  100% { --rumble-amp: 0; }
+}
+
+#passphrase-label {
+  display: block;
+  margin: 0 0 8px;
+  width: 100%;
+  max-width: 100%;
+  color: #2a2a2a;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  text-shadow: none;
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  :root {
+    --chest-size: clamp(150px, 28vh, 240px);
+    --zone-gap: clamp(8px, 1.6vh, 14px);
+    --interaction-width: min(94vw, 520px);
+    --interaction-min-height: clamp(96px, 32vh, 150px);
+  }
+
+  #interaction-zone {
+    padding: 8px 10px;
+    border-width: 3px;
+    overflow: hidden;
+  }
+
+  #passphrase-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.45px;
+    line-height: 1.1;
+    margin-bottom: 4px;
+  }
+
+  #passphrase-input-wrap {
+    width: min(86vw, 300px);
+  }
+
+  #passphrase-rainbow,
+  #passphrase-input {
+    font-size: 1.35rem;
+    letter-spacing: 0.6px;
+    padding: 7px 8px;
+  }
+
+  #passphrase-submit {
+    margin-top: 6px;
+    padding: 6px 10px;
+    font-size: 0.72rem;
+    letter-spacing: 0.8px;
+  }
+}
+
+#passphrase-input-wrap {
+  position: relative;
+  width: min(92vw, 360px);
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+#passphrase-rainbow {
+  position: absolute;
+  inset: 0;
+  padding: 10px 12px;
+  font-size: 2.2rem;
+  font-weight: 800;
+  font-family: 'Cinzel', Georgia, serif;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  text-align: center;
+  pointer-events: none;
+  white-space: pre;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+#passphrase-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 2.2rem;
+  font-weight: 800;
+  font-family: 'Cinzel', Georgia, serif;
+  letter-spacing: 1.2px;
+  border: none;
+  border-radius: 0;
+  background: #b3b3b3;
+  color: transparent;
+  caret-color: #222;
+  text-align: center;
+  text-shadow: none;
+  text-transform: uppercase;
+  outline: none;
+  box-shadow: none;
+  box-sizing: border-box;
+}
+
+#passphrase-input::placeholder {
+  color: #555;
+}
+
+#passphrase-input:focus {
+  background: #c2c2c2;
+  border: none;
+  box-shadow: none;
+}
+
+#passphrase-submit {
+  margin-top: 10px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 0;
+  background: #5b5b5b;
+  color: #f0f0f0;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.88rem;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+#passphrase-submit:focus,
+#passphrase-submit:hover {
+  background: #4a4a4a;
+}
+
+.hidden {
+  display: none !important;
+}
+
+#secret-display {
+  margin: 0 auto;
+  padding: 10px 14px;
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  font-size: clamp(1.25rem, 4vw, 2rem);
+  color: #2a2a2a;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  text-align: center;
+  border: none;
+  border-radius: 0;
+  background: #9a9a9a;
+  text-shadow: none;
+  box-shadow: none;
+}
