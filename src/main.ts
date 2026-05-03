@@ -113,7 +113,7 @@ function checkPassphrase(): void {
     return;
   }
 
-  passphraseLabel.textContent = 'FALSCH DU TROTTEL';
+  passphraseLabel.textContent = 'DAS WAR LEIDER FALSCH!';
   failAudio.currentTime = 0;
   failAudio.play().catch(() => {
     // Ignore autoplay policy rejections if the browser blocks sound.
