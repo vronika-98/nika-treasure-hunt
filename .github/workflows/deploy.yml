@@ -5,6 +5,15 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      vite_passphrase:
+        description: VITE_PASSPHRASE for this manual build
+        required: true
+        type: string
+      vite_secret_message:
+        description: VITE_SECRET_MESSAGE for this manual build
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -31,7 +40,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
+      - name: Build (push)
+        if: github.event_name != 'workflow_dispatch'
+        env:
+          VITE_PASSPHRASE: ${{ secrets.VITE_PASSPHRASE }}
+          VITE_SECRET_MESSAGE: ${{ secrets.VITE_SECRET_MESSAGE }}
+        run: npm run build
+
+      - name: Build (manual dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          VITE_PASSPHRASE: ${{ inputs.vite_passphrase }}
+          VITE_SECRET_MESSAGE: ${{ inputs.vite_secret_message }}
         run: npm run build
 
       - name: Setup Pages
