@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       vite_passphrase:
-        description: VITE_PASSPHRASE for this manual build
+        description: VITE_PASSPHRASE for this manual build (max 13 chars)
         required: true
         type: string
       vite_secret_message:
@@ -49,6 +49,10 @@ jobs:
           fi
           if [ -z "$VITE_SECRET_MESSAGE" ]; then
             echo "vite_secret_message is empty. Please enter a value when starting the workflow." >&2
+            exit 1
+          fi
+          if [ ${#VITE_PASSPHRASE} -gt 13 ]; then
+            echo "vite_passphrase is too long (${#VITE_PASSPHRASE}). Max allowed is 13 characters." >&2
             exit 1
           fi
           echo "Inputs received (lengths): passphrase=${#VITE_PASSPHRASE}, secret_message=${#VITE_SECRET_MESSAGE}"

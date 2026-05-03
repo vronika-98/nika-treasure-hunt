@@ -1,6 +1,22 @@
 import { describe, expect, it } from 'vitest';
 
-import { isPassphraseMatch, normalizePassphrase } from './passphrase';
+import {
+  clampPassphraseInput,
+  isPassphraseMatch,
+  normalizePassphrase,
+  PASSPHRASE_MAX_LENGTH,
+} from './passphrase';
+
+describe('clampPassphraseInput', () => {
+  it('keeps values at or below max length', () => {
+    expect(clampPassphraseInput('ABCDEFGHIJKLM')).toBe('ABCDEFGHIJKLM');
+  });
+
+  it('truncates values above max length', () => {
+    expect(clampPassphraseInput('ABCDEFGHIJKLMN')).toHaveLength(PASSPHRASE_MAX_LENGTH);
+    expect(clampPassphraseInput('ABCDEFGHIJKLMN')).toBe('ABCDEFGHIJKLM');
+  });
+});
 
 describe('normalizePassphrase', () => {
   it('uppercases and trims passphrases', () => {

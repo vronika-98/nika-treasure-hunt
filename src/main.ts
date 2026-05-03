@@ -2,7 +2,7 @@ import './style.css'
 import { renderApp } from './dom';
 import { assetUrl, CORRECT_PASSPHRASE, SECRET_MESSAGE } from './env';
 import { createChestStarBurst } from './particles/starBurst';
-import { isPassphraseMatch } from './passphrase';
+import { clampPassphraseInput, isPassphraseMatch, PASSPHRASE_MAX_LENGTH } from './passphrase';
 
 document.documentElement.style.setProperty('--bg-image', `url("${assetUrl('background.png')}")`);
 document.documentElement.style.setProperty('--left-strip-image', `url("${assetUrl('vertical-strip-left.png')}")`);
@@ -123,8 +123,15 @@ function checkPassphrase(): void {
 
 input.addEventListener('input', (e) => {
   const target = e.target as HTMLInputElement;
+  const clampedValue = clampPassphraseInput(target.value);
+  if (clampedValue !== target.value) {
+    target.value = clampedValue;
+  }
+
   updateRainbowDisplay(target.value);
 });
+
+input.maxLength = PASSPHRASE_MAX_LENGTH;
 
 input.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
