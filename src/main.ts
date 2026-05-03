@@ -1,6 +1,12 @@
 import './style.css'
 import { createChestStarBurst } from './particles/starBurst';
 
+const assetUrl = (fileName: string): string => `${import.meta.env.BASE_URL}${fileName}`;
+
+document.documentElement.style.setProperty('--bg-image', `url("${assetUrl('background.png')}")`);
+document.documentElement.style.setProperty('--left-strip-image', `url("${assetUrl('vertical-strip-left.png')}")`);
+document.documentElement.style.setProperty('--right-strip-image', `url("${assetUrl('vertical-strip-right.png')}")`);
+
 // Fetch variables from the environment (injected during build)
 const CORRECT_PASSPHRASE = import.meta.env.VITE_PASSPHRASE;
 const SECRET_MESSAGE = import.meta.env.VITE_SECRET_MESSAGE;
@@ -10,7 +16,7 @@ const app = document.querySelector<HTMLDivElement>('#app')!;
 app.innerHTML = `
   <div class="game-container">    
     <div id="chest-wrapper" class="closed">
-      <img id="chest-img" src="/treasure-chest-closed.png" alt="Treasure Chest">
+      <img id="chest-img" src="${assetUrl('treasure-chest-closed.png')}" alt="Treasure Chest">
     </div>
 
     <div id="interaction-zone">
@@ -34,8 +40,8 @@ const rainbowDisplay = document.querySelector<HTMLDivElement>('#passphrase-rainb
 const secretDisplay = document.querySelector<HTMLParagraphElement>('#secret-display')!;
 const chestImg = document.querySelector<HTMLImageElement>('#chest-img')!;
 const triggerChestStarBurst = createChestStarBurst(chestImg);
-const wowAudio = new Audio('/wow.mp3');
-const failAudio = new Audio('/fail.mp3');
+const wowAudio = new Audio(assetUrl('wow.mp3'));
+const failAudio = new Audio(assetUrl('fail.mp3'));
 wowAudio.preload = 'auto';
 failAudio.preload = 'auto';
 
@@ -110,7 +116,7 @@ async function revealSecret(): Promise<void> {
     // Ignore autoplay policy rejections if the browser blocks sound.
   });
 
-  chestImg.src = '/treasure-chest-open.png';
+  chestImg.src = assetUrl('treasure-chest-open.png');
   requestAnimationFrame(() => {
     chestImg.classList.remove('chest-white');
   });

@@ -14,11 +14,14 @@
 
 :root {
   background-color: #060a0e;
-  background-image: url('/background.png');
+  background-image: var(--bg-image);
   background-repeat: repeat;
   background-position: top left;
   color: #c4cbb5;
   font-family: 'Cinzel', Georgia, serif;
+  --bg-image: none;
+  --left-strip-image: none;
+  --right-strip-image: none;
   --side-border-width: clamp(24px, 5vw, 56px);
   --focus-zone-top: 20vh;
   --focus-zone-height: 60vh;
@@ -81,12 +84,12 @@ body::after {
 
 body::before {
   left: 0;
-  background-image: url('/vertical-strip-left.png');
+  background-image: var(--left-strip-image);
 }
 
 body::after {
   right: 0;
-  background-image: url('/vertical-strip-right.png');
+  background-image: var(--right-strip-image);
 }
 
 .game-container {
