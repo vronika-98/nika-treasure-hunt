@@ -1,47 +1,26 @@
 import './style.css'
+import { renderApp } from './dom';
+import { assetUrl, CORRECT_PASSPHRASE, SECRET_MESSAGE } from './env';
 import { createChestStarBurst } from './particles/starBurst';
-
-const assetUrl = (fileName: string): string => `${import.meta.env.BASE_URL}${fileName}`;
+import { isPassphraseMatch } from './passphrase';
 
 document.documentElement.style.setProperty('--bg-image', `url("${assetUrl('background.png')}")`);
 document.documentElement.style.setProperty('--left-strip-image', `url("${assetUrl('vertical-strip-left.png')}")`);
 document.documentElement.style.setProperty('--right-strip-image', `url("${assetUrl('vertical-strip-right.png')}")`);
 
-// Fetch variables from the environment (injected during build)
-const CORRECT_PASSPHRASE = import.meta.env.VITE_PASSPHRASE;
-const SECRET_MESSAGE = import.meta.env.VITE_SECRET_MESSAGE;
-
 console.debug('[debug] VITE_PASSPHRASE:', CORRECT_PASSPHRASE);
 console.debug('[debug] VITE_SECRET_MESSAGE:', SECRET_MESSAGE);
 
-const app = document.querySelector<HTMLDivElement>('#app')!;
-
-app.innerHTML = `
-  <div class="game-container">    
-    <div id="chest-wrapper" class="closed">
-      <img id="chest-img" src="${assetUrl('treasure-chest-closed.png')}" alt="Treasure Chest">
-    </div>
-
-    <div id="interaction-zone">
-      <label id="passphrase-label" for="passphrase-input">GEHEIMCODE EINGEBEN</label>
-      <div id="passphrase-input-wrap">
-        <div id="passphrase-rainbow" aria-hidden="true"></div>
-        <input type="text" id="passphrase-input" autocomplete="off" spellcheck="false">
-      </div>
-      <button id="passphrase-submit" type="button">PRÜFEN</button>
-      <p id="secret-display" class="hidden">${SECRET_MESSAGE}</p>
-    </div>
-  </div>
-`;
-
-const interactionZone = document.querySelector<HTMLDivElement>('#interaction-zone')!;
-const passphraseLabel = document.querySelector<HTMLLabelElement>('#passphrase-label')!;
-const input = document.querySelector<HTMLInputElement>('#passphrase-input')!;
-const inputWrap = document.querySelector<HTMLDivElement>('#passphrase-input-wrap')!;
-const submitButton = document.querySelector<HTMLButtonElement>('#passphrase-submit')!;
-const rainbowDisplay = document.querySelector<HTMLDivElement>('#passphrase-rainbow')!;
-const secretDisplay = document.querySelector<HTMLParagraphElement>('#secret-display')!;
-const chestImg = document.querySelector<HTMLImageElement>('#chest-img')!;
+const {
+  interactionZone,
+  passphraseLabel,
+  input,
+  inputWrap,
+  submitButton,
+  rainbowDisplay,
+  secretDisplay,
+  chestImg,
+} = renderApp(assetUrl, SECRET_MESSAGE);
 const triggerChestStarBurst = createChestStarBurst(chestImg);
 const wowAudio = new Audio(assetUrl('wow.mp3'));
 const failAudio = new Audio(assetUrl('fail.mp3'));
@@ -129,7 +108,7 @@ async function revealSecret(): Promise<void> {
 }
 
 function checkPassphrase(): void {
-  if (input.value.toUpperCase() === CORRECT_PASSPHRASE.toUpperCase()) {
+  if (isPassphraseMatch(input.value, CORRECT_PASSPHRASE)) {
     revealSecret();
     return;
   }
